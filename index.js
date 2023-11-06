@@ -63,11 +63,19 @@ async function run() {
     //Get Category Data
     app.get('/category', async (req, res) => {
 
-
       const cursor = categoryCollection.find();
       const result = await cursor.toArray();
       res.send(result)
 
+    })
+
+    //Post A Book 
+    app.post('/book',async(req,res)=> {
+
+      const newBook = req.body;
+      console.log(newBook)
+      const result = await bookCollection.insertOne(newBook)
+      res.send(result)
 
     })
 
