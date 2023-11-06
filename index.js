@@ -48,6 +48,7 @@ async function run() {
 
     const bookCollection = client.db('bookDB').collection('book')
     const categoryCollection = client.db('categoryDB').collection('category')
+    const borrowedCollection = client.db('borrowedDB').collection('borrowed')
 
 
     //Post A Category
@@ -75,6 +76,32 @@ async function run() {
       const newBook = req.body;
       console.log(newBook)
       const result = await bookCollection.insertOne(newBook)
+      res.send(result)
+
+    })
+    //Get All Book Data
+    app.get('/book',async(req,res) => {
+
+      const cursor = bookCollection.find();
+      const result = await cursor.toArray();
+      res.send(result)
+
+    })
+
+    //Post a Borrowed data
+    app.post('/borrowed',async(req,res)=> {
+
+      const newBorrowed = req.body;
+      const result = await borrowedCollection.insertOne(newBorrowed);
+      res.send(result)
+
+    })
+    
+    //Get All Borrowed Data
+    app.get('/borrowed',async(req,res)=>{
+
+      const cursor = borrowedCollection.find();
+      const result = await cursor.toArray();
       res.send(result)
 
     })
