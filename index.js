@@ -2,11 +2,22 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
+const jwt = require('jsonwebtoken')
 require('dotenv').config();
 const { MongoClient, ServerApiVersion } = require('mongodb');
 
 //Middleware
-app.use(cors());
+app.use(cors({
+
+  origin: [
+
+    'http://localhost:5173'
+
+
+  ],
+  credentials: true
+
+}));
 app.use(express.json());
 
 //port
@@ -51,6 +62,27 @@ async function run() {
     const borrowedCollection = client.db('borrowedDB').collection('borrowed')
 
 
+    //Auth Related APi
+    app.post('/jwt', async (req, res) => {
+
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+
+      res.cookie('token', token, {
+
+        httpOnly: true,
+        secure: true,
+
+      }).send({ success: true })
+    })
+
+    /*     app.post('/logout', async (res, req) => {
+    
+          const user = req.body;
+          res.send({ success: true })
+    
+        }) */
+
     //Post A Category
     app.post('/category', async (req, res) => {
 
@@ -71,7 +103,7 @@ async function run() {
     })
 
     //Post A Book 
-    app.post('/book',async(req,res)=> {
+    app.post('/book', async (req, res) => {
 
       const newBook = req.body;
       console.log(newBook)
@@ -80,7 +112,7 @@ async function run() {
 
     })
     //Get All Book Data
-    app.get('/book',async(req,res) => {
+    app.get('/book', async (req, res) => {
 
       const cursor = bookCollection.find();
       const result = await cursor.toArray();
@@ -89,22 +121,30 @@ async function run() {
     })
 
     //Post a Borrowed data
-    app.post('/borrowed',async(req,res)=> {
+    app.post('/borrowed', async (req, res) => {
 
       const newBorrowed = req.body;
       const result = await borrowedCollection.insertOne(newBorrowed);
       res.send(result)
 
     })
-    
-    //Get All Borrowed Data
-    app.get('/borrowed',async(req,res)=>{
 
-      const cursor = borrowedCollection.find();
+    //Get All Borrowed Data
+    app.get('/borrowed', async (req, res) => {
+
+      let query = {};
+      if (req.query?.email) {
+
+        query = { email: req.query.email }
+
+      }
+      const cursor = borrowedCollection.find(query);
       const result = await cursor.toArray();
       res.send(result)
 
     })
+
+
 
 
 
