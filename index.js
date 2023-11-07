@@ -232,6 +232,36 @@ async function run() {
 
       }
 
+
+      //Update Book data
+
+      app.put('/book/:id', async (req, res) => {
+
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) }
+        const options = { upsert: true };
+        const updatedBook = req.body;
+        const book = {
+
+          $set: {
+
+            name: updatedBook.name,
+            category: updatedBook.category,
+            quantity: updatedBook.quantity,
+            AuthorsName: updatedBook.AuthorsName,
+            short: updatedBook.short,
+            rating2: updatedBook.rating2,
+            photo: updatedBook.photo
+
+          }
+
+        }
+
+        const result = await bookCollection.updateOne(filter, book, options)
+        res.send(result)
+
+      })
+
       const result = await bookCollection.updateOne(filter, book, options)
       res.send(result)
 
