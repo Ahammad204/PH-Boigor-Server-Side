@@ -4,7 +4,7 @@ const cors = require('cors');
 const app = express();
 const jwt = require('jsonwebtoken')
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 //Middleware
 app.use(cors({
@@ -77,11 +77,11 @@ async function run() {
     })
 
     app.post('/logout', (req, res) => {
-    
+
       res.clearCookie('token');
       res.send({ success: true });
-  });
-  
+    });
+
 
     //Post A Category
     app.post('/category', async (req, res) => {
@@ -129,7 +129,21 @@ async function run() {
 
     })
 
-    //Get All Borrowed Data
+    //Get All Borrowed Data basis of email
+    app.get('/borrowed', async (req, res) => {
+
+      let query = {};
+      if (req.query?.email) {
+
+        query = { email: req.query.email }
+
+      }
+      const cursor = borrowedCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result)
+
+    })
+    //Get All Borrowed Data basis of email
     app.get('/borrowed', async (req, res) => {
 
       let query = {};
@@ -144,6 +158,39 @@ async function run() {
 
     })
 
+    //Get car Data for Update
+    app.get('/book/:id', async (req, res) => {
+
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await bookCollection.findOne(query);
+      res.send(result);
+      console.log(id)
+
+    })
+
+    //Update Book quantity data
+
+    app.put('/book/:id', async (req, res) => {
+
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
+      const options = { upsert: true };
+      const updatedBook = req.body;
+      const book = {
+
+        $set: {
+
+          quantity: updatedBook.quantity
+
+        }
+
+      }
+
+      const result = await bookCollection.updateOne(filter, book, options)
+      res.send(result)
+
+    }) 
 
 
 
