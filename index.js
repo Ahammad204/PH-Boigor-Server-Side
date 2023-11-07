@@ -55,7 +55,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    // await client.connect();
+    //  await client.connect();
 
     const bookCollection = client.db('bookDB').collection('book')
     const categoryCollection = client.db('categoryDB').collection('category')
@@ -192,6 +192,17 @@ async function run() {
 
     })
 
+    //Get Book Data for Update
+    app.get('/borrowed/:_id', async (req, res) => {
+
+      const id = req.params._id;
+      const query = { _id: new ObjectId(id) }
+      const result = await borrowedCollection.findOne(query);
+      res.send(result);
+      console.log(id)
+
+    })
+
     //Delete Borrowed Data
     app.delete('/borrowed/:id', async (req, res) => {
 
@@ -201,6 +212,31 @@ async function run() {
       res.send(result)
 
     })
+
+
+    //Update Book quantity data
+
+    app.put('/book/:bookId', async (req, res) => {
+
+      const id = req.params.bookId;
+      const filter = { _id: new ObjectId(id) }
+      const options = { upsert: true };
+      const updateQuantity = req.body;
+      const book = {
+
+        $set: {
+
+          quantity: updateQuantity.quantity
+
+        }
+
+      }
+
+      const result = await bookCollection.updateOne(filter, book, options)
+      res.send(result)
+
+    })
+
 
 
     //Send a ping to confirm a successful connection
