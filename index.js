@@ -158,7 +158,7 @@ async function run() {
 
     })
 
-    //Get car Data for Update
+    //Get Book Data for Update
     app.get('/book/:id', async (req, res) => {
 
       const id = req.params.id;
@@ -190,9 +190,17 @@ async function run() {
       const result = await bookCollection.updateOne(filter, book, options)
       res.send(result)
 
-    }) 
+    })
 
+    //Delete Borrowed Data
+    app.delete('/borrowed/:id', async (req, res) => {
 
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await borrowedCollection.deleteOne(query);
+      res.send(result)
+
+    })
 
 
     //Send a ping to confirm a successful connection
