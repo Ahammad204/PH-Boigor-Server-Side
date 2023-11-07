@@ -76,12 +76,12 @@ async function run() {
       }).send({ success: true })
     })
 
-    /*     app.post('/logout', async (res, req) => {
+    app.post('/logout', (req, res) => {
     
-          const user = req.body;
-          res.send({ success: true })
-    
-        }) */
+      res.clearCookie('token');
+      res.send({ success: true });
+  });
+  
 
     //Post A Category
     app.post('/category', async (req, res) => {
