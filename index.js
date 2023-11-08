@@ -7,11 +7,13 @@ require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 //Middleware
+//Middleware
 app.use(cors({
 
   origin: [
 
-    'http://localhost:5173'
+    // 'http://localhost:5173',
+    'https://phboigor.web.app'
 
 
   ],
@@ -231,42 +233,51 @@ async function run() {
         }
 
       }
+      const result = await bookCollection.updateOne(filter, book, options)
+      res.send(result)
+
+    })
 
 
-      //Update Book data
+    //Update Book data
 
-      app.put('/book/:id', async (req, res) => {
+    app.put('/book/:id', async (req, res) => {
 
-        const id = req.params.id;
-        const filter = { _id: new ObjectId(id) }
-        const options = { upsert: true };
-        const updatedBook = req.body;
-        const book = {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
+      const options = { upsert: true };
+      const updatedBook = req.body;
+      const book = {
 
-          $set: {
+        $set: {
 
-            name: updatedBook.name,
-            category: updatedBook.category,
-            quantity: updatedBook.quantity,
-            AuthorsName: updatedBook.AuthorsName,
-            short: updatedBook.short,
-            rating2: updatedBook.rating2,
-            photo: updatedBook.photo
-
-          }
+          name: updatedBook.name,
+          category: updatedBook.category,
+          quantity: updatedBook.quantity,
+          AuthorsName: updatedBook.AuthorsName,
+          short: updatedBook.short,
+          rating2: updatedBook.rating2,
+          photo: updatedBook.photo,
+          bookContent: updatedBook.bookContent
 
         }
 
-        const result = await bookCollection.updateOne(filter, book, options)
-        res.send(result)
-
-      })
+      }
 
       const result = await bookCollection.updateOne(filter, book, options)
       res.send(result)
 
     })
 
+    //Delete All  Data
+    app.delete('/book/:id', async (req, res) => {
+
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await bookCollection.deleteOne(query);
+      res.send(result)
+
+    })
 
 
     //Send a ping to confirm a successful connection
