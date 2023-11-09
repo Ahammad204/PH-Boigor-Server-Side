@@ -32,6 +32,22 @@ const logger = async (req, res, next) => {
 
 }
 
+const authenticateToken = (req, res, next) => {
+  const token = req.headers.Cookie;
+
+  if (!token) {
+    return res.sendStatus(401); // Unauthorized
+  }
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+    if (err) {
+      return res.sendStatus(403); // Forbidden
+    }
+    req.user = user;
+    next();
+  });
+};
+
 //Verify Token Middleware 
 const verifyToken = async (req, res, next) => {
 
@@ -40,7 +56,7 @@ const verifyToken = async (req, res, next) => {
 
   if (!token) {
 
-    return res.status(401).send({ message: 'Not valid User' })
+    return res.status(403).send({ message: 'Not valid User' })
 
   }
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
@@ -104,7 +120,7 @@ async function run() {
 
 
     //Auth Related APi
-    app.post('/jwt', async (req, res) => {
+    app.post('/jwt',logger, async (req, res) => {
 
       const user = req.body;
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
@@ -155,7 +171,7 @@ async function run() {
     })
 
     //Post A Book 
-    app.post('/book', async (req, res) => {
+    app.post('/book',verifyToken, async (req, res) => {
 
       const newBook = req.body;
       console.log(newBook)
@@ -164,7 +180,7 @@ async function run() {
 
     })
     //Get All Book Data
-    app.get('/book', async (req, res) => {
+    app.get('/book',  async (req, res) => {
 
       const cursor = bookCollection.find();
       const result = await cursor.toArray();
@@ -182,7 +198,7 @@ async function run() {
     })
 
     //Get All Borrowed Data basis of email
-    app.get('/borrowed', async (req, res) => {
+    app.get('/borrowed', verifyToken, async (req, res) => {
 
       let query = {};
       if (req.query?.email) {
@@ -195,20 +211,7 @@ async function run() {
       res.send(result)
 
     })
-    //Get All Borrowed Data basis of email
-/*     app.get('/borrowed', async (req, res) => {
 
-      let query = {};
-      if (req.query?.email) {
-
-        query = { email: req.query.email }
-
-      }
-      const cursor = borrowedCollection.find(query);
-      const result = await cursor.toArray();
-      res.send(result)
-
-    }) */
 
     //Get Book Data for Update
     app.get('/book/:id', async (req, res) => {
@@ -223,7 +226,7 @@ async function run() {
 
     //Update Book quantity data
 
-    app.put('/book/:id', async (req, res) => {
+    app.put('/book/:id',  async (req, res) => {
 
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) }
@@ -244,7 +247,7 @@ async function run() {
 
     })
 
-    //Get Book Data for Update
+    //Get Borrowed Data for Update
     app.get('/borrowed/:_id', async (req, res) => {
 
       const id = req.params._id;
@@ -291,7 +294,7 @@ async function run() {
 
     //Update Book data
 
-    app.put('/book/:id', async (req, res) => {
+    app.put('/book/:id',verifyToken, async (req, res) => {
 
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) }
@@ -319,7 +322,7 @@ async function run() {
 
     })
 
-    //Delete All  Data
+    //Delete book  Data
     app.delete('/book/:id', async (req, res) => {
 
       const id = req.params.id;
