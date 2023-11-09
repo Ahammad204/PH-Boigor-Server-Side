@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const jwt = require('jsonwebtoken')
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
@@ -21,6 +22,44 @@ app.use(cors({
 
 }));
 app.use(express.json());
+app.use(cookieParser())
+
+//Logger Middleware
+const logger = async (req, res, next) => {
+
+  console.log('called: ', req.host, req.originalUrl, req.method, req.url)
+  next();
+
+}
+
+//Verify Token Middleware 
+const verifyToken = async (req, res, next) => {
+
+  const token = req.cookies?.token;
+  console.log('value of token in middleware', token)
+
+  if (!token) {
+
+    return res.status(401).send({ message: 'Not valid User' })
+
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+
+    //error
+    if (err) {
+
+      console.log(err)
+      return res.status(401).send({ message: 'Not valid User' })
+
+    }
+
+    //Decoded
+    console.log('Value in the token', decoded)
+    req.user = decoded;
+
+    next()
+  })
+}
 
 //port
 const port = process.env.PORT || 5000;
@@ -72,15 +111,26 @@ async function run() {
 
       res.cookie('token', token, {
 
-        httpOnly: true,
-        secure: true,
+        httpOnly:true,
+        secure:true,
+        sameSite:'none'
+        
 
       }).send({ success: true })
     })
 
     app.post('/logout', (req, res) => {
 
-      res.clearCookie('token');
+      res.clearCookie('token',{
+
+        httpOnly:true,
+        secure:true,
+        sameSite:'none',
+        maxAge:0
+
+
+
+      });
       res.send({ success: true });
     });
 
@@ -146,7 +196,7 @@ async function run() {
 
     })
     //Get All Borrowed Data basis of email
-    app.get('/borrowed', async (req, res) => {
+/*     app.get('/borrowed', async (req, res) => {
 
       let query = {};
       if (req.query?.email) {
@@ -158,7 +208,7 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result)
 
-    })
+    }) */
 
     //Get Book Data for Update
     app.get('/book/:id', async (req, res) => {
